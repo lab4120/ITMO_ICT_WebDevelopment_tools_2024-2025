@@ -1,0 +1,5 @@
+sqlmodel
+psycopg2-binary
+alembic
+fastapi
+uvicorn
