@@ -18,13 +18,17 @@ theme:
       toggle:
         icon: material/toggle-switch-off-outline
         name: Переключить светлую тему
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.tabs.link
+    - content.tabs
 
 nav:
   - Главная: index.md
-  - Парсеры:
-    - Асинхронный парсер: async_parser.md
-    - Многопоточный парсер: threading_parser.md
-    - Многопроцессный парсер: multiprocessing_parser.md
+  - Парсеры: parsers.md
   - Сравнение производительности: performance_comparison.md
 
 plugins:
@@ -35,3 +39,4 @@ plugins:
         python:
           rendering:
             show_source: true
+
