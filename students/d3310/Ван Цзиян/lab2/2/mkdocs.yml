@@ -1,0 +1,37 @@
+site_name: Парсер веб-страниц с параллельной обработкой
+site_description: Документация проекта сравнения производительности трех методов параллельного парсинга
+site_author: Разработчик
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Переключить темную тему
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Переключить светлую тему
+
+nav:
+  - Главная: index.md
+  - Парсеры:
+    - Асинхронный парсер: async_parser.md
+    - Многопоточный парсер: threading_parser.md
+    - Многопроцессный парсер: multiprocessing_parser.md
+  - Сравнение производительности: performance_comparison.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: true
