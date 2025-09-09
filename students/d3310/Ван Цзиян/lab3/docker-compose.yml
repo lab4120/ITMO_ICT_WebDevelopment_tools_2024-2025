@@ -1,0 +1,163 @@
+services:
+  # Redis сервис - брокер сообщений Celery
+  redis:
+    image: redis:7-alpine
+    container_name: lab3-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # PostgreSQL сервис базы данных
+  db:
+    image: postgres:16-alpine
+    container_name: lab3-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 221bbs
+      POSTGRES_DB: appdb
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-appdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Сервис парсера данных
+  parser:
+    build:
+      context: ./lab2/parser_app
+      dockerfile: Dockerfile
+    container_name: lab3-parser
+    restart: unless-stopped
+    environment:
+      PYTHONPATH: /app
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Celery Worker сервис
+  celery-worker:
+    build:
+      context: ./lab1
+      dockerfile: Dockerfile
+    container_name: lab3-celery-worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:221bbs@db:5432/appdb
+      PARSER_URL: http://parser:8001
+      REDIS_URL: redis://redis:6379/0
+      PYTHONPATH: /app
+    command: celery -A app.celery_app worker --loglevel=info --queues=parser_queue,default
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      parser:
+        condition: service_started
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Celery Beat сервис (опционально - для периодических задач)
+  celery-beat:
+    build:
+      context: ./lab1
+      dockerfile: Dockerfile
+    container_name: lab3-celery-beat
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:221bbs@db:5432/appdb
+      PARSER_URL: http://parser:8001
+      REDIS_URL: redis://redis:6379/0
+      PYTHONPATH: /app
+    command: celery -A app.celery_app beat --loglevel=info
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - celery_beat_data:/app
+
+  # FastAPI основное приложение
+  api:
+    build:
+      context: ./lab1
+      dockerfile: Dockerfile
+    container_name: lab3-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:221bbs@db:5432/appdb
+      PARSER_URL: http://parser:8001
+      REDIS_URL: redis://redis:6379/0
+      PYTHONPATH: /app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      parser:
+        condition: service_started
+      celery-worker:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Конфигурация сети
+networks:
+  app-network:
+    driver: bridge
+    name: lab3-network
+
+# Конфигурация томов данных
+volumes:
+  db_data:
+    driver: local
+    name: lab3-db-data
+  redis_data:
+    driver: local
+    name: lab3-redis-data
+  celery_beat_data:
+    driver: local
+    name: lab3-celery-beat-data
