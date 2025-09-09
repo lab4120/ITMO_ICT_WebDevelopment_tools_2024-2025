@@ -32,7 +32,6 @@ theme:
 # Настройки плагинов
 plugins:
   - search
-  - codehilite
 
 # Настройки markdown
 markdown_extensions:

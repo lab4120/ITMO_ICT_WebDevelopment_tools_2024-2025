@@ -63,25 +63,16 @@ Docker Compose упрощает настройку и запуск Celery, Redis
 
 ## Архитектура системы
 
-```mermaid
-graph TB
-    Client[Клиент] --> FastAPI[FastAPI API]
-    FastAPI --> Parser[Парсер]
-    FastAPI --> Celery[Celery Queue]
-    Celery --> Redis[(Redis)]
-    Celery --> Worker[Celery Worker]
-    Worker --> Parser
-    FastAPI --> DB[(PostgreSQL)]
-    
-    subgraph "Docker контейнеры"
-        FastAPI
-        Parser
-        Celery
-        Worker
-        Redis
-        DB
-    end
-```
+Система состоит из следующих компонентов:
+- **Клиент** - отправляет HTTP запросы
+- **FastAPI API** - основное веб-приложение
+- **Парсер** - сервис для парсинга URL
+- **Celery Queue** - очередь задач
+- **Redis** - брокер сообщений и хранилище результатов
+- **Celery Worker** - обработчик задач
+- **PostgreSQL** - база данных
+
+Все компоненты работают в Docker контейнерах и взаимодействуют через внутреннюю сеть.
 
 ## Структура проекта
 

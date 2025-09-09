@@ -8,24 +8,16 @@ Celery - это асинхронная очередь задач для Python, 
 
 ### Архитектура системы
 
-```mermaid
-graph TB
-    Client[Клиент] --> FastAPI[FastAPI API]
-    FastAPI --> Celery[Celery Producer]
-    Celery --> Redis[(Redis Broker)]
-    Redis --> Worker[Celery Worker]
-    Worker --> Parser[Парсер]
-    Worker --> Redis
-    
-    subgraph "Очередь задач"
-        Redis
-        TaskQueue[Очередь задач]
-        ResultStore[Хранилище результатов]
-    end
-    
-    Redis --> TaskQueue
-    Redis --> ResultStore
-```
+Система работает следующим образом:
+
+1. **Клиент** отправляет HTTP запрос в FastAPI
+2. **FastAPI** создает Celery задачу и отправляет её в Redis
+3. **Redis** хранит задачу в очереди
+4. **Celery Worker** получает задачу из Redis и выполняет её
+5. **Результат** сохраняется обратно в Redis
+6. **Клиент** может получить результат по task_id
+
+Redis используется как брокер сообщений для хранения задач и результатов.
 
 ### Как это работает
 
