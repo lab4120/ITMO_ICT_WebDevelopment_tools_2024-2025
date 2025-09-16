@@ -34,10 +34,11 @@ uvicorn app.main:app --reload
 ## Технологический стек
 
 - **Backend**: FastAPI + SQLModel
-- **База данных**: SQLite
+- **База данных**: PostgreSQL + Alembic (миграции)
 - **Аутентификация**: JWT + bcrypt
 - **Frontend**: HTML + CSS + JavaScript
 - **Документация**: MkDocs + Material for MkDocs
+- **Развертывание**: GitHub Pages + GitHub Actions
 
 ## Документация
 
@@ -120,28 +121,77 @@ docs/
 ### Структура проекта
 ```
 lab1/
-├── app/                    # Код приложения
-│   ├── api/               # API маршруты
-│   ├── core/              # Основная конфигурация
-│   ├── crud/              # Операции с базой данных
-│   ├── db/                # Конфигурация базы данных
-│   ├── models/            # Модели данных
-│   ├── schemas/           # Схемы данных
-│   ├── templates/         # HTML шаблоны
-│   └── main.py            # Точка входа приложения
-├── docs/                  # Документация
-├── .github/               # GitHub Actions
-├── mkdocs.yml            # Конфигурация MkDocs
-└── requirements.txt      # Список зависимостей
+├── app/                           # Основной код приложения
+│   ├── api/v1/                   # API маршруты версии 1
+│   │   ├── user.py              # Пользовательские API
+│   │   ├── finance.py           # Финансовые API
+│   │   ├── budget.py            # Бюджетные API
+│   │   ├── goal.py              # Целевые API
+│   │   └── category.py          # Категорийные API
+│   ├── core/                     # Основная конфигурация
+│   │   ├── config.py            # Настройки приложения
+│   │   └── security.py          # Безопасность и JWT
+│   ├── crud/                     # Операции с базой данных
+│   │   └── user.py              # CRUD операции пользователей
+│   ├── db/                       # Конфигурация базы данных
+│   │   ├── base.py              # Базовые модели
+│   │   ├── session.py           # Сессии базы данных
+│   │   └── init_db.py           # Инициализация БД
+│   ├── models/                   # Модели данных SQLModel
+│   │   ├── user.py              # Модель пользователя
+│   │   ├── category.py          # Модель категории
+│   │   ├── budget.py            # Модель бюджета
+│   │   ├── finance.py           # Модель финансов
+│   │   ├── goal.py              # Модель цели
+│   │   └── association.py       # Ассоциативные модели
+│   ├── schemas/                  # Pydantic схемы
+│   │   ├── user.py              # Схемы пользователя
+│   │   ├── category.py          # Схемы категории
+│   │   ├── budget.py            # Схемы бюджета
+│   │   ├── finance.py           # Схемы финансов
+│   │   ├── goal.py              # Схемы цели
+│   │   └── association.py       # Схемы ассоциаций
+│   ├── templates/                # HTML шаблоны
+│   │   └── index.html           # Главная страница
+│   └── main.py                   # Точка входа FastAPI
+├── alembic/                      # Миграции базы данных
+│   ├── versions/                 # Файлы миграций
+│   ├── env.py                    # Конфигурация Alembic
+│   └── script.py.mako            # Шаблон миграций
+├── docs/                         # Документация проекта
+│   └── index.md                  # Основная документация
+├── .github/workflows/            # GitHub Actions
+│   └── deploy.yml                # Автоматическое развертывание
+├── alembic.ini                   # Конфигурация Alembic
+├── mkdocs.yml                    # Конфигурация MkDocs
+├── requirements.txt              # Зависимости Python
+└── README.md                     # Документация проекта
 ```
 
 ### Переменные окружения
 Создайте файл `.env`:
 ```env
-DATABASE_URL=sqlite:///./finance.db
+DATABASE_URL=postgresql://username:password@localhost:5432/finance_db
 SECRET_KEY=your-secret-key-here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+### Настройка PostgreSQL
+1. Установите PostgreSQL на вашей системе
+2. Создайте базу данных:
+   ```sql
+   CREATE DATABASE finance_db;
+   ```
+3. Обновите DATABASE_URL в файле `.env` с вашими учетными данными
+
+### Миграции базы данных
+```bash
+# Создание миграции
+alembic revision --autogenerate -m "Initial migration"
+
+# Применение миграций
+alembic upgrade head
 ```
 
 ## Лицензия

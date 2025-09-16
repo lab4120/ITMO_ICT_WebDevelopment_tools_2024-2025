@@ -9,7 +9,7 @@ class UserNotification(SQLModel, table=True):
     notification_id: Optional[int] = Field(default=None, foreign_key="notification.id", primary_key=True)
     is_read: bool = Field(default=False)
 
-    user: "User" = Relationship(back_populates="notifications")
+    user: "User" = Relationship()
     notification: "Notification" = Relationship(back_populates="users")
 
 class Notification(SQLModel, table=True):

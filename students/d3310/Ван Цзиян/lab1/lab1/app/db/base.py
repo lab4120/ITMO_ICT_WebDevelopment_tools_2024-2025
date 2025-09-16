@@ -1,4 +1,5 @@
 from app.models import user, category, budget, finance, goal, association
 from sqlmodel import SQLModel
 
-# 只需导入所有模型，供 Alembic 使用 
+# Import all models to ensure they are registered with SQLModel
+# This is required for Alembic to detect all models 
